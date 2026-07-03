@@ -1,0 +1,1454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TOEIC 어휘 마스터</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --yellow:#fee500;--yellow-dark:#e6cf00;--black:#1e1e1e;--white:#ffffff;
+  --text-primary:#222222;--text-std:#333333;--text-sec:#666666;--text-muted:#808080;--text-light:#999999;--text-lightest:#bbbbbb;
+  --surface:#f8f8f8;--fill:#f0f0f0;--border:#e5e5e5;--footer:#eeeeee;
+  --error:#e02000;--success:#47b881;--link:#2196f3;
+  --r-sm:4px;--r-md:12px;--r-lg:20px;--r-full:9999px;
+  --shadow-min:0 1px 3px rgba(0,0,0,.04);--shadow-sub:0 2px 6px rgba(0,0,0,.08);--shadow-el:0 4px 12px rgba(0,0,0,.12);
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",Roboto,"Noto Sans KR","Malgun Gothic",sans-serif;background:var(--white);color:var(--text-primary);min-height:100vh;font-size:16px;line-height:1.5}
+button{cursor:pointer;border:none;background:none;font-family:inherit;font-size:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+input{font-family:inherit}
+a{color:var(--link);text-decoration:none}
+
+/* Layout */
+#app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.screen{flex:1;display:none;flex-direction:column}
+.screen.active{display:flex}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;padding:12px 16px;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;gap:8px}
+.topbar-title{flex:1;font-size:18px;font-weight:600;color:var(--text-primary)}
+.topbar-btn{width:36px;height:36px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;background:var(--fill);color:var(--text-muted)}
+.topbar-btn:hover{background:var(--border)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r-md);padding:13px 20px;font-size:16px;font-weight:600;transition:opacity .15s,transform .15s;width:100%}
+.btn:active{transform:scale(.98);opacity:.9}
+.btn-primary{background:var(--yellow);color:var(--text-std)}
+.btn-primary:hover{background:var(--yellow-dark)}
+.btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-std)}
+.btn-danger{background:var(--error);color:var(--white)}
+
+/* Cards */
+.card{background:var(--white);border-radius:var(--r-md);padding:16px;border:1px solid var(--border)}
+
+/* Badge */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:var(--r-full);font-size:13px;font-weight:600}
+.badge-접속사{background:#e3f2fd;color:#1565c0}
+.badge-전치사{background:#f3e5f5;color:#6a1b9a}
+.badge-부사{background:#e8f5e9;color:#2e7d32}
+.badge-가산{background:#e3f2fd;color:#1565c0}
+.badge-불가산{background:#fce4ec;color:#880e4f}
+.badge-to부정사{background:#e8f5e9;color:#2e7d32}
+.badge-동명사{background:#fff3e0;color:#e65100}
+.badge-둘다{background:#f3e5f5;color:#6a1b9a}
+
+/* Progress bar */
+.progress-wrap{padding:0 16px;margin-bottom:4px}
+.progress-label{display:flex;justify-content:space-between;font-size:13px;color:var(--text-light);margin-bottom:6px}
+.progress-bar{height:4px;background:var(--fill);border-radius:var(--r-full)}
+.progress-fill{height:100%;background:var(--yellow);border-radius:var(--r-full);transition:width .3s}
+
+/* Home screen */
+.home-header{padding:24px 16px 16px;display:flex;align-items:center;justify-content:space-between}
+.home-title{font-size:22px;font-weight:700}
+.home-subtitle{font-size:14px;color:var(--text-sec);margin-top:2px}
+.sync-btn{font-size:12px;color:var(--text-muted);background:var(--fill);border-radius:var(--r-full);padding:6px 12px;display:flex;align-items:center;gap:4px;cursor:pointer;border:none}
+.type-list{padding:0 16px;display:flex;flex-direction:column;gap:12px;padding-bottom:24px}
+.type-card{background:var(--white);border-radius:var(--r-md);padding:16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer;transition:box-shadow .15s}
+.type-card:hover{box-shadow:var(--shadow-sub)}
+.type-icon{width:48px;height:48px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.type-info{flex:1;min-width:0}
+.type-name{font-size:16px;font-weight:600;color:var(--text-primary)}
+.type-desc{font-size:13px;color:var(--text-sec);margin-top:1px}
+.type-progress{display:flex;align-items:center;gap:8px;margin-top:8px}
+.type-dots{display:flex;gap:3px;flex-wrap:wrap}
+.type-dot{width:6px;height:6px;border-radius:50%}
+.type-count{font-size:12px;color:var(--text-muted);white-space:nowrap}
+.type-arrow{color:var(--text-lightest);flex-shrink:0}
+
+/* Flash screen */
+.flash-container{flex:1;display:flex;flex-direction:column;padding:16px;gap:12px;overflow-y:auto}
+.flash-word-card{background:var(--yellow);border-radius:var(--r-md);padding:28px 20px;text-align:center;cursor:pointer;transition:opacity .15s}
+.flash-word-card:active{opacity:.85}
+.flash-word{font-size:22px;font-weight:700;color:var(--text-std);line-height:1.3;word-break:break-word}
+.flash-hint{font-size:13px;color:var(--text-std);opacity:.7;margin-top:8px}
+.flash-answer-card{background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:20px;display:flex;flex-direction:column;gap:10px;align-items:center;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.flash-answer-word{font-size:18px;font-weight:700;color:var(--text-primary);text-align:center;word-break:break-word}
+.flash-answer-prep{font-size:20px;font-weight:700;color:var(--yellow-dark);text-align:center}
+.flash-answer-meaning{font-size:16px;color:var(--text-std);text-align:center;line-height:1.5}
+.flash-auto-bar{height:3px;background:var(--fill);border-radius:var(--r-full);overflow:hidden;margin-top:4px}
+.flash-auto-fill{height:100%;background:var(--yellow);border-radius:var(--r-full);transition:width linear}
+.flash-complete{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px;text-align:center}
+.complete-icon{font-size:48px;margin-bottom:8px}
+.complete-title{font-size:20px;font-weight:700}
+.complete-desc{font-size:15px;color:var(--text-sec);line-height:1.6}
+.complete-actions{display:flex;flex-direction:column;gap:10px;width:100%}
+
+/* Quiz screen */
+.quiz-container{flex:1;display:flex;flex-direction:column;padding:16px;gap:14px;overflow-y:auto}
+.quiz-word-card{background:var(--yellow);border-radius:var(--r-md);padding:20px;text-align:center}
+.quiz-word{font-size:20px;font-weight:700;color:var(--text-std);word-break:break-word;line-height:1.3}
+.quiz-section{background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:16px;display:flex;flex-direction:column;gap:10px}
+.quiz-section-label{font-size:13px;font-weight:600;color:var(--text-muted)}
+.quiz-choices{display:flex;flex-direction:column;gap:7px}
+.choice-btn{background:var(--white);border:1.5px solid var(--border);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:500;color:var(--text-primary);text-align:left;transition:all .15s;line-height:1.4;word-break:break-word}
+.choice-btn:hover:not(:disabled){border-color:var(--text-lightest);background:var(--surface)}
+.choice-btn.selected{border-color:var(--yellow-dark);background:#fffde7}
+.choice-btn.correct{border-color:var(--success);background:#f0faf4;color:#1b5e20}
+.choice-btn.wrong{border-color:var(--error);background:#fdf2f2;color:#c62828}
+.choice-btn.reveal{border-color:var(--success);background:#f0faf4;color:#1b5e20}
+.choice-btn:disabled{pointer-events:none}
+.quiz-submit-area{display:flex;flex-direction:column;gap:8px;padding-bottom:16px}
+.quiz-feedback-row{display:flex;gap:8px;font-size:13px;font-weight:600}
+.qfb-ok{color:var(--success)}
+.qfb-no{color:var(--error)}
+.quiz-complete{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px;text-align:center}
+
+/* Preview screen */
+.preview-container{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.preview-info{padding:12px 16px;font-size:13px;color:var(--text-sec);border-bottom:1px solid var(--fill)}
+.preview-table-wrap{flex:1;overflow-y:auto;padding:0 16px 16px}
+.preview-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+.preview-table th{background:var(--yellow);color:var(--text-std);font-weight:700;padding:9px 10px;text-align:left;position:sticky;top:0}
+.preview-table th:first-child{border-radius:var(--r-sm) 0 0 0}
+.preview-table th:last-child{border-radius:0 var(--r-sm) 0 0}
+.preview-table td{padding:9px 10px;border-bottom:1px solid var(--fill);vertical-align:top;line-height:1.4;word-break:break-word}
+.preview-table tr:last-child td{border-bottom:none}
+.preview-table tr:nth-child(even) td{background:var(--surface)}
+.preview-footer{padding:16px;border-top:1px solid var(--border)}
+
+/* Settings */
+.settings-section{padding:16px;border-bottom:1px solid var(--fill)}
+.settings-label{font-size:13px;color:var(--text-sec);margin-bottom:6px;font-weight:500}
+.settings-input{width:100%;background:var(--white);border:1px solid var(--border);border-radius:var(--r-md);padding:12px 16px;font-size:15px;color:var(--text-primary);outline:none}
+.settings-input:focus{border-color:var(--text-std)}
+.settings-row{display:flex;gap:8px;margin-top:8px}
+.settings-row .btn{flex:1;font-size:14px;padding:10px}
+.settings-hint{font-size:12px;color:var(--text-muted);margin-top:6px}
+
+/* Toast */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-80px);background:var(--black);color:var(--white);padding:10px 20px;border-radius:var(--r-full);font-size:14px;transition:transform .25s;z-index:100;white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* Progress modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:50;display:none;align-items:flex-end}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--white);border-radius:var(--r-lg) var(--r-lg) 0 0;width:100%;max-width:480px;margin:0 auto;padding:20px 16px 32px;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:var(--r-full);margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;color:var(--text-primary);margin-bottom:16px}
+.prog-type-row{display:flex;flex-direction:column;gap:8px;padding:14px 0;border-bottom:1px solid var(--fill)}
+.prog-type-row:last-child{border-bottom:none}
+.prog-type-header{display:flex;align-items:center;gap:10px}
+.prog-type-icon{width:36px;height:36px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.prog-type-name{font-size:15px;font-weight:600;flex:1}
+.prog-type-fraction{font-size:13px;color:var(--text-muted)}
+.prog-bar-wrap{height:6px;background:var(--fill);border-radius:var(--r-full);overflow:hidden;margin:0 2px}
+.prog-bar-fill{height:100%;background:var(--yellow);border-radius:var(--r-full)}
+.prog-stat-row{display:flex;gap:12px;font-size:12px}
+.ps-done{color:var(--yellow-dark);font-weight:600}
+.ps-learning{color:var(--text-sec)}
+.ps-unseen{color:var(--text-lightest)}
+
+/* Multi-select hint */
+.multi-hint{font-size:12px;color:var(--text-muted);margin-top:-4px}
+
+/* Type icon colors */
+.ic-접전부{background:#fff9c4;color:#f57f17}
+.ic-가산불가산{background:#e3f2fd;color:#1565c0}
+.ic-자동사전치사{background:#f3e5f5;color:#6a1b9a}
+.ic-수동태{background:#fce4ec;color:#880e4f}
+.ic-동명사{background:#e8f5e9;color:#2e7d32}
+
+.dot-done{background:var(--yellow)}
+.dot-learning{background:var(--text-lightest)}
+.dot-unseen{background:var(--fill);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="home-header">
+      <div>
+        <div class="home-title">TOEIC 어휘 마스터</div>
+        <div class="home-subtitle">유형별 집중 학습</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="sync-btn" onclick="showProgress()" style="gap:4px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17h7M17 14v7"/></svg>
+          진도
+        </button>
+        <button class="sync-btn" onclick="showSettings()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+          <span id="sync-label">동기화</span>
+        </button>
+      </div>
+    </div>
+    <div class="type-list" id="type-list"></div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div id="screen-preview" class="screen">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="goHome()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="topbar-title" id="preview-title">오늘의 학습 카드</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="preview-container">
+      <div class="preview-info" id="preview-info"></div>
+      <div class="preview-table-wrap" id="preview-table-wrap"></div>
+    </div>
+    <div class="preview-footer">
+      <button class="btn btn-primary" onclick="startFlashFromPreview()">플래시 시작 →</button>
+    </div>
+  </div>
+
+  <!-- FLASH -->
+  <div id="screen-flash" class="screen">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="goHome()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="topbar-title" id="flash-title">플래시카드</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:12px">
+      <div class="progress-label">
+        <span id="flash-progress-text">플래시</span>
+        <span id="flash-progress-count"></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="flash-progress-bar" style="width:0%"></div></div>
+    </div>
+    <div id="flash-content" class="flash-container"></div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="screen">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="goHome()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="topbar-title" id="quiz-title">퀴즈</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="progress-wrap" style="margin-top:12px">
+      <div class="progress-label">
+        <span id="quiz-progress-text">퀴즈</span>
+        <span id="quiz-progress-count"></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="quiz-progress-bar" style="width:0%"></div></div>
+    </div>
+    <div id="quiz-content" class="quiz-container"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="screen-settings" class="screen">
+    <div class="topbar">
+      <button class="topbar-btn" onclick="goHome()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="topbar-title">설정 / 동기화</div>
+      <div style="width:36px"></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">GitHub Personal Access Token</div>
+      <div style="position:relative">
+        <input class="settings-input" id="token-input" type="password" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" style="padding-right:52px">
+        <button onclick="toggleTokenView()" id="token-eye" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:4px">보기</button>
+      </div>
+      <div class="settings-hint">gist 권한이 있는 토큰을 입력하세요</div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Gist ID (비워두면 자동 생성)</div>
+      <input class="settings-input" id="gist-input" placeholder="gist id">
+      <div class="settings-row">
+        <button class="btn btn-primary" onclick="connectGist()" style="font-size:14px;padding:10px">연결</button>
+        <button class="btn btn-secondary" onclick="syncNow()" style="font-size:14px;padding:10px">저장</button>
+      </div>
+      <div class="settings-hint" id="gist-status"></div>
+    </div>
+    <div class="settings-section">
+      <button class="btn btn-secondary" onclick="resetAll()" style="border-color:var(--error);color:var(--error);font-size:14px;padding:10px">전체 진도 초기화</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS MODAL -->
+<div class="modal-overlay" id="progress-modal" onclick="closeProgress(event)">
+  <div class="modal-sheet" id="progress-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">전체 진도 현황</div>
+    <div id="progress-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+// DATA
+// ================================================================
+const DATA = {
+  접전부: [
+    // -- 접속사 --
+    {word:'because',type:'접속사',meaning:'왜냐하면 ~때문에'},
+    {word:'although / even though',type:'접속사',meaning:'~에도 불구하고'},
+    {word:'while',type:'접속사/부사',meaning:'접속사: ~하는 동안에 / 반면에 | 부사: 한편'},
+    {word:'when',type:'접속사/부사',meaning:'접속사: ~할 때 | 부사: 그때'},
+    {word:'if',type:'접속사',meaning:'만약 ~라면'},
+    {word:'unless',type:'접속사',meaning:'만약 ~가 아니라면'},
+    {word:'since',type:'접속사/전치사/부사',meaning:'접속사: ~이래로 / ~때문에 | 전치사: ~이래로 (명사 앞) | 부사: 그때 이래로'},
+    {word:'once',type:'접속사/부사',meaning:'접속사: 일단 ~하면 / ~하자마자 | 부사: 한 번'},
+    {word:'as far as',type:'접속사',meaning:'~하는 한 (범위)'},
+    {word:'as long as',type:'접속사',meaning:'~하는 한 (조건)'},
+    {word:'now that',type:'접속사',meaning:'이제 ~이니까'},
+    {word:'whether',type:'접속사',meaning:'~인지 아닌지'},
+    {word:'as soon as',type:'접속사',meaning:'~하자마자'},
+    {word:'though',type:'접속사/부사',meaning:'접속사: ~에도 불구하고 | 부사: 하지만, 그래도'},
+    {word:'provided that',type:'접속사',meaning:'만약 ~라면 (조건)'},
+    {word:'assuming that',type:'접속사',meaning:'만약 ~라면 (가정)'},
+    {word:'so that',type:'접속사',meaning:'~할 수 있도록'},
+    {word:'in that',type:'접속사',meaning:'~라는 점에서'},
+    {word:'in case',type:'접속사',meaning:'~인 경우를 대비해서'},
+    {word:'every time',type:'접속사',meaning:'~할 때마다'},
+    {word:'by the time',type:'접속사',meaning:'~할 때쯤'},
+    {word:'even if',type:'접속사',meaning:'만약 ~일지라도'},
+    {word:'given that',type:'접속사',meaning:'~를 고려할 때'},
+    {word:'on condition that',type:'접속사',meaning:'~하는 조건이라면'},
+    {word:'as if / as though',type:'접속사',meaning:'마치 ~인 것처럼'},
+    {word:'whereas',type:'접속사',meaning:'반면에'},
+    {word:'except that',type:'접속사',meaning:'~를 제외하고'},
+    // -- 접속사/전치사 겸용 --
+    {word:'before',type:'접속사/전치사',meaning:'접속사: ~하기 전에 (절 앞) | 전치사: ~전에 (명사 앞)'},
+    {word:'after',type:'접속사/전치사',meaning:'접속사: ~한 후에 (절 앞) | 전치사: ~후에 (명사 앞)'},
+    {word:'until / till',type:'접속사/전치사',meaning:'접속사: ~할 때까지 (절 앞) | 전치사: ~까지 (명사 앞) — 상태의 지속'},
+    {word:'by',type:'전치사',meaning:'~까지 (일회성 행위 완료) — until과 구별!'},
+    // -- 전치사 --
+    {word:'because of / due to / owing to',type:'전치사',meaning:'~때문에'},
+    {word:'thanks to',type:'전치사',meaning:'~덕분에'},
+    {word:'despite / in spite of',type:'전치사',meaning:'~에도 불구하고'},
+    {word:'notwithstanding',type:'전치사',meaning:'~에도 불구하고 (격식)'},
+    {word:'in terms of',type:'전치사',meaning:'~에 관해 말하자면'},
+    {word:'regarding / concerning',type:'전치사',meaning:'~에 관하여'},
+    {word:'as for / as to',type:'전치사',meaning:'~에 관하여'},
+    {word:'with regard to',type:'전치사',meaning:'~에 관하여 (격식)'},
+    {word:'according to',type:'전치사',meaning:'~에 따르면'},
+    {word:'in addition to',type:'전치사',meaning:'~이외에도'},
+    {word:'instead of',type:'전치사',meaning:'~대신에'},
+    {word:'in front of',type:'전치사',meaning:'~앞에'},
+    {word:'in case of',type:'전치사',meaning:'~인 경우를 대비해서'},
+    {word:'out of',type:'전치사',meaning:'~중에서 / ~에서 벗어나'},
+    {word:'along with / alongside',type:'전치사',meaning:'~와 함께'},
+    {word:'aside from / apart from',type:'전치사',meaning:'~이외에 / ~를 제외하고'},
+    {word:'on top of',type:'전치사',meaning:'~이외에도'},
+    {word:'throughout',type:'전치사',meaning:'~내내 / ~도처에'},
+    {word:'prior to',type:'전치사',meaning:'~이전에'},
+    {word:'subsequent to',type:'전치사',meaning:'~후에'},
+    {word:'by means of',type:'전치사',meaning:'~의 수단으로'},
+    {word:'for the sake of',type:'전치사',meaning:'~를 위해서'},
+    {word:'in light of',type:'전치사',meaning:'~를 고려하여'},
+    {word:'in the event of',type:'전치사',meaning:'~인 경우에'},
+    {word:'depending on',type:'전치사',meaning:'~에 따라'},
+    {word:'compared to',type:'전치사',meaning:'~와 비교했을 때'},
+    {word:'as of',type:'전치사',meaning:'~부터 (특정 시점)'},
+    {word:'pending',type:'전치사',meaning:'~를 기다리는 동안'},
+    {word:'including',type:'전치사',meaning:'~를 포함하여'},
+    {word:'except / excluding',type:'전치사',meaning:'~를 제외하고'},
+    {word:'beyond',type:'전치사',meaning:'~를 넘어서'},
+    {word:'through',type:'전치사',meaning:'~를 통해서'},
+    {word:'against',type:'전치사',meaning:'~에 반대하여'},
+    {word:'upon -ing',type:'전치사',meaning:'~하자마자'},
+    {word:'by -ing',type:'전치사',meaning:'~함으로써'},
+    {word:'adjacent to',type:'전치사',meaning:'~에 인접하여'},
+    {word:'opposite / across from',type:'전치사',meaning:'~의 맞은 편에'},
+    {word:'over',type:'전치사',meaning:'~동안에 / ~위에'},
+    {word:'under',type:'전치사',meaning:'~하에 / ~아래에'},
+    {word:'regardless of',type:'전치사',meaning:'~와 관계없이'},
+    {word:'minus',type:'전치사',meaning:'~를 뺀'},
+    {word:'per',type:'전치사',meaning:'~의 요청대로 / ~마다'},
+    {word:'effective',type:'전치사',meaning:'~부터 (발효일)'},
+    {word:'following',type:'전치사',meaning:'~후에'},
+    // -- 부사 --
+    {word:'however',type:'부사',meaning:'그러나'},
+    {word:'therefore / thus',type:'부사',meaning:'그러므로'},
+    {word:'accordingly',type:'부사',meaning:'그에 따라서'},
+    {word:'consequently',type:'부사',meaning:'결과적으로 / 따라서'},
+    {word:'nevertheless / nonetheless',type:'부사',meaning:'그럼에도 불구하고'},
+    {word:'meanwhile',type:'부사',meaning:'그러는 동안에'},
+    {word:'furthermore / moreover',type:'부사',meaning:'게다가'},
+    {word:'additionally / in addition',type:'부사',meaning:'추가적으로'},
+    {word:'besides',type:'부사',meaning:'게다가 (부사)'},
+    {word:'otherwise',type:'부사',meaning:'그렇지 않으면'},
+    {word:'simultaneously',type:'부사',meaning:'동시에'},
+    {word:'afterward / thereafter',type:'부사',meaning:'그 후에'},
+    {word:'instead',type:'부사',meaning:'대신에'},
+    {word:'overall / on the whole',type:'부사',meaning:'전반적으로'},
+    {word:'specifically',type:'부사',meaning:'구체적으로'},
+    {word:'likewise / similarly',type:'부사',meaning:'마찬가지로'},
+    {word:'in fact / as a matter of fact',type:'부사',meaning:'사실은'},
+    {word:'in effect',type:'부사',meaning:'사실상'},
+    {word:'namely',type:'부사',meaning:'즉'},
+    {word:'for instance / for example',type:'부사',meaning:'예를 들어'},
+    {word:'all of a sudden',type:'부사',meaning:'갑자기'},
+    {word:'first of all / above all',type:'부사',meaning:'무엇보다도'},
+    {word:'on the other hand',type:'부사',meaning:'반면에'},
+    {word:'in contrast / on the contrary',type:'부사',meaning:'대조적으로'},
+    {word:'in any case',type:'부사',meaning:'어쨌든'},
+    {word:'before long',type:'부사',meaning:'오래지 않아'},
+    {word:'after all',type:'부사',meaning:'결국에는'},
+    {word:'as such',type:'부사',meaning:'따라서 / 그러므로'},
+    {word:'to that end',type:'부사',meaning:'그것을 목적으로'},
+    {word:'as a result',type:'부사',meaning:'결과적으로'},
+  ],
+
+  가산불가산: [
+    // 불가산 (주의)
+    {word:'machinery',count:'불가산',meaning:'기계류 (집합명사)'},
+    {word:'documentation',count:'불가산',meaning:'서류 / 문서화'},
+    {word:'news',count:'불가산',meaning:'뉴스'},
+    {word:'information',count:'불가산',meaning:'정보'},
+    {word:'advice',count:'불가산',meaning:'조언'},
+    {word:'furniture',count:'불가산',meaning:'가구 (집합명사)'},
+    {word:'luggage / baggage',count:'불가산',meaning:'수화물 / 짐'},
+    {word:'equipment',count:'불가산',meaning:'장비 (집합명사)'},
+    {word:'research',count:'불가산',meaning:'연구'},
+    {word:'satisfaction',count:'불가산',meaning:'만족'},
+    {word:'approval',count:'불가산',meaning:'승인 / 허가'},
+    {word:'maintenance',count:'불가산',meaning:'유지 / 보수'},
+    {word:'manufacture',count:'불가산',meaning:'제조'},
+    {word:'mail',count:'불가산',meaning:'우편물'},
+    {word:'feedback',count:'불가산',meaning:'피드백'},
+    {word:'clothing',count:'불가산',meaning:'의복 (집합명사)'},
+    {word:'consent',count:'불가산',meaning:'동의'},
+    {word:'assistance',count:'불가산',meaning:'도움 / 지원'},
+    {word:'produce',count:'불가산',meaning:'농산물'},
+    {word:'permission',count:'불가산',meaning:'허가'},
+    {word:'merchandise',count:'불가산',meaning:'상품 (집합명사)'},
+    {word:'planning',count:'불가산',meaning:'기획'},
+    {word:'progress',count:'불가산',meaning:'진전'},
+    {word:'proof',count:'불가산',meaning:'증거'},
+    {word:'usage',count:'불가산',meaning:'사용량'},
+    {word:'support',count:'불가산',meaning:'지원'},
+    {word:'cash',count:'불가산',meaning:'현금'},
+    {word:'money',count:'불가산',meaning:'돈'},
+    {word:'access',count:'불가산',meaning:'접근권'},
+    {word:'participation',count:'불가산',meaning:'참가'},
+    {word:'segmentation',count:'불가산',meaning:'분할'},
+    // 가산
+    {word:'procedure',count:'가산',meaning:'절차'},
+    {word:'acquaintance',count:'가산',meaning:'지인'},
+    {word:'permit',count:'가산',meaning:'허가증'},
+    {word:'resource',count:'가산',meaning:'자원'},
+    {word:'decision',count:'가산',meaning:'결정'},
+    {word:'clothes',count:'가산',meaning:'옷 (복수형)'},
+    {word:'compliment',count:'가산',meaning:'칭찬'},
+    {word:'detail',count:'가산',meaning:'세부 사항'},
+    {word:'suggestion',count:'가산',meaning:'제안'},
+    {word:'approach',count:'가산',meaning:'접근법'},
+    {word:'delay',count:'가산',meaning:'연기'},
+    {word:'machine',count:'가산',meaning:'기계'},
+    {word:'fund',count:'가산',meaning:'기금'},
+    {word:'regulation',count:'가산',meaning:'규정'},
+    {word:'presentation',count:'가산',meaning:'발표'},
+    {word:'mistake',count:'가산',meaning:'실수'},
+    {word:'product',count:'가산',meaning:'제품'},
+    {word:'rule',count:'가산',meaning:'규칙'},
+    {word:'wage',count:'가산',meaning:'임금'},
+    {word:'device',count:'가산',meaning:'장치'},
+    {word:'circumstance',count:'가산',meaning:'상황'},
+    {word:'outcome',count:'가산',meaning:'결과'},
+    {word:'appreciation',count:'가산',meaning:'감사 / 감상'},
+    {word:'survey',count:'가산',meaning:'설문조사'},
+    {word:'cost',count:'가산',meaning:'비용'},
+    {word:'measure',count:'가산',meaning:'조치'},
+    {word:'request',count:'가산',meaning:'요청 사항'},
+    {word:'furnishings',count:'가산',meaning:'가구 비품 (복수)'},
+    {word:'reservation',count:'가산',meaning:'예약'},
+    {word:'plan',count:'가산',meaning:'계획'},
+    {word:'precaution',count:'가산',meaning:'예방 조치'},
+    {word:'certificate',count:'가산',meaning:'증명서'},
+    {word:'exchange',count:'가산',meaning:'교환'},
+    {word:'instruction',count:'가산',meaning:'지시 / 설명서'},
+    {word:'benefit',count:'가산',meaning:'혜택'},
+    {word:'discount',count:'가산',meaning:'할인'},
+    {word:'price',count:'가산',meaning:'가격'},
+    {word:'offer',count:'가산',meaning:'제안 / 할인'},
+    {word:'complaint',count:'가산',meaning:'불만 사항'},
+    {word:'arrangement',count:'가산',meaning:'준비 / 배열'},
+    {word:'contribution',count:'가산',meaning:'기여 / 기부금'},
+    {word:'refund',count:'가산',meaning:'환불'},
+    {word:'document',count:'가산',meaning:'문서'},
+    {word:'segment',count:'가산',meaning:'부분'},
+    {word:'error',count:'가산',meaning:'오류'},
+  ],
+
+  자동사전치사: [
+    {verb:'depend',prep:'on',meaning:'~에 의존하다'},
+    {verb:'focus',prep:'on',meaning:'~에 집중하다'},
+    {verb:'concentrate',prep:'on',meaning:'~에 집중하다'},
+    {verb:'rely',prep:'on',meaning:'~에 의존하다'},
+    {verb:'count',prep:'on',meaning:'~을 믿다 / 의지하다'},
+    {verb:'comment',prep:'on',meaning:'~에 대해 논평하다'},
+    {verb:'agree',prep:'on / with',meaning:'~에 동의하다'},
+    {verb:'coincide',prep:'with',meaning:'~와 우연히 일치하다'},
+    {verb:'cooperate',prep:'with',meaning:'~와 협력하다'},
+    {verb:'communicate',prep:'with',meaning:'~와 소통하다'},
+    {verb:'interact',prep:'with',meaning:'~와 상호작용하다'},
+    {verb:'compete',prep:'with',meaning:'~와 경쟁하다'},
+    {verb:'merge',prep:'with',meaning:'~와 합병하다'},
+    {verb:'consult',prep:'with',meaning:'~와 상의하다'},
+    {verb:'negotiate',prep:'with',meaning:'~와 협상하다'},
+    {verb:'collaborate',prep:'on / with',meaning:'~에 / ~와 협력하다'},
+    {verb:'experiment',prep:'with / on',meaning:'~를 실험하다'},
+    {verb:'deal',prep:'with',meaning:'~을 다루다'},
+    {verb:'cope',prep:'with',meaning:'~에 대처하다'},
+    {verb:'interfere',prep:'with',meaning:'~를 방해하다'},
+    {verb:'specialize',prep:'in',meaning:'~을 전문으로 하다'},
+    {verb:'participate',prep:'in',meaning:'~에 참가하다'},
+    {verb:'engage',prep:'in',meaning:'~에 관여하다 / 종사하다'},
+    {verb:'succeed',prep:'in',meaning:'~에 성공하다'},
+    {verb:'enroll',prep:'in',meaning:'~에 등록하다'},
+    {verb:'result',prep:'from / in',meaning:'from은 ~때문이다 / in은 ~을 초래하다'},
+    {verb:'benefit',prep:'from',meaning:'~로부터 혜택을 얻다'},
+    {verb:'graduate',prep:'from',meaning:'~를 졸업하다'},
+    {verb:'suffer',prep:'from',meaning:'~로 앓다 / 고통받다'},
+    {verb:'refrain',prep:'from',meaning:'~를 자제하다'},
+    {verb:'contribute',prep:'to',meaning:'~에 기여하다'},
+    {verb:'react',prep:'to',meaning:'~에 반응하다'},
+    {verb:'respond',prep:'to',meaning:'~에 응답하다'},
+    {verb:'correspond',prep:'to',meaning:'~에 상응하다'},
+    {verb:'listen',prep:'to',meaning:'~을 듣다'},
+    {verb:'object',prep:'to',meaning:'~에 반대하다'},
+    {verb:'belong',prep:'to',meaning:'~에 속하다'},
+    {verb:'subscribe',prep:'to',meaning:'~을 구독하다'},
+    {verb:'lead',prep:'to',meaning:'~로 이어지다'},
+    {verb:'refer',prep:'to',meaning:'~을 참조하다'},
+    {verb:'reply',prep:'to',meaning:'~에 회신하다'},
+    {verb:'appeal',prep:'to',meaning:'~에 호소하다 / 관심을 끌다'},
+    {verb:'commit',prep:'to',meaning:'~에 전념하다'},
+    {verb:'adhere',prep:'to',meaning:'~를 준수하다'},
+    {verb:'conform',prep:'to',meaning:'~를 준수하다'},
+    {verb:'attend',prep:'to',meaning:'~에 주의를 기울이다'},
+    {verb:'proceed',prep:'to / with',meaning:'to는 ~로 이동하다 / with는 계속 진행하다'},
+    {verb:'report',prep:'to',meaning:'~에게 보고하다'},
+    {verb:'amount',prep:'to',meaning:'~에 이르다'},
+    {verb:'relate',prep:'to',meaning:'~에 공감하다 / 관련되다'},
+    {verb:'look',prep:'for',meaning:'~을 찾다'},
+    {verb:'search',prep:'for',meaning:'~을 찾다'},
+    {verb:'ask',prep:'for',meaning:'~를 요청하다'},
+    {verb:'wait',prep:'for',meaning:'~를 기다리다'},
+    {verb:'opt',prep:'for',meaning:'~를 선택하다'},
+    {verb:'vote',prep:'for / against',meaning:'for는 찬성 / against는 반대 투표하다'},
+    {verb:'register',prep:'for',meaning:'~에 등록하다'},
+    {verb:'arrange',prep:'for',meaning:'~를 주선하다'},
+    {verb:'qualify',prep:'for / as',meaning:'for는 자격을 얻다 / as는 ~로서 자격'},
+    {verb:'account',prep:'for',meaning:'~를 설명하다 / 차지하다'},
+    {verb:'sign up',prep:'for',meaning:'~에 등록하다 / 신청하다'},
+    {verb:'think',prep:'of',meaning:'~을 생각하다'},
+    {verb:'approve',prep:'of',meaning:'~를 찬성하다'},
+    {verb:'dispose',prep:'of',meaning:'~를 처분하다'},
+    {verb:'consist',prep:'of',meaning:'~로 구성되다'},
+    {verb:'choose',prep:'from',meaning:'~에서 선택하다'},
+    {verb:'emerge',prep:'as',meaning:'~로 나타나다'},
+    {verb:'serve',prep:'as',meaning:'~로 근무하다'},
+    {verb:'excel',prep:'at / in',meaning:'~에 뛰어나다'},
+    {verb:'expand',prep:'into',meaning:'~로 진출하다'},
+    {verb:'comply',prep:'with',meaning:'~를 준수하다'},
+    {verb:'abide',prep:'by',meaning:'~를 준수하다'},
+    {verb:'inquire',prep:'about',meaning:'~에 관해 문의하다'},
+    {verb:'talk',prep:'to / with',meaning:'~와 이야기하다'},
+    {verb:'consent',prep:'to',meaning:'~에 동의하다'},
+    {verb:'follow up',prep:'on',meaning:'~에 후속 조치를 취하다'},
+    {verb:'take part',prep:'in',meaning:'~에 참여하다'},
+    {verb:'come up',prep:'with',meaning:'~를 생각해 내다'},
+    {verb:'fill in / out',prep:'in / out',meaning:'~를 작성하다'},
+    {verb:'apply',prep:'for / to',meaning:'for는 지원하다 / to는 적용되다'},
+    {verb:'preside',prep:'over',meaning:'~의 사회를 보다'},
+  ],
+
+  수동태: [
+    {expr:'be surprised',prep:'at',meaning:'~에 놀라다'},
+    {expr:'be satisfied',prep:'with',meaning:'~에 만족하다'},
+    {expr:'be filled',prep:'with',meaning:'~로 가득 차다'},
+    {expr:'be equipped',prep:'with',meaning:'~를 갖추다'},
+    {expr:'be involved',prep:'in',meaning:'~에 관련되다'},
+    {expr:'be interested',prep:'in',meaning:'~에 관심이 있다'},
+    {expr:'be known',prep:'for',meaning:'~로 유명하다 (이유)'},
+    {expr:'be known',prep:'as',meaning:'~로서 알려지다 (신분)'},
+    {expr:'be based',prep:'on',meaning:'~에 근거하다'},
+    {expr:'be based',prep:'in',meaning:'~에 본사를 두다'},
+    {expr:'be related',prep:'to',meaning:'~와 관련된'},
+    {expr:'be associated',prep:'with',meaning:'~와 연관된'},
+    {expr:'be independent',prep:'of',meaning:'~로부터 독립적인'},
+    {expr:'be responsible',prep:'for',meaning:'~에 책임이 있는'},
+    {expr:'be responsive',prep:'to',meaning:'~에 즉각 반응하는'},
+    {expr:'be compliant',prep:'with',meaning:'~를 준수하는'},
+    {expr:'be consistent',prep:'with',meaning:'~와 일치하는'},
+    {expr:'be available',prep:'to',meaning:'~가 이용 가능한'},
+    {expr:'be asked',prep:'to do',meaning:'~하도록 요청받다'},
+    {expr:'be allowed',prep:'to do',meaning:'~하도록 허용되다'},
+    {expr:'be advised',prep:'to do',meaning:'~하도록 권고받다'},
+    {expr:'be required',prep:'to do',meaning:'~하도록 요구되다'},
+    {expr:'be expected',prep:'to do',meaning:'~할 것으로 예상되다'},
+    {expr:'be permitted',prep:'to do',meaning:'~하도록 허락받다'},
+    {expr:'be encouraged',prep:'to do',meaning:'~하도록 장려되다'},
+    {expr:'be invited',prep:'to do',meaning:'~하도록 초대받다'},
+  ],
+
+  동명사: [
+    {verb:'agree / refuse / decide / plan',pattern:'to부정사',meaning:'~하기로 동의 / 거절 / 결정 / 계획하다'},
+    {verb:'want / wish / hope / expect',pattern:'to부정사',meaning:'~하기를 원하다 / 바라다 / 기대하다'},
+    {verb:'need / afford / manage / fail',pattern:'to부정사',meaning:'~할 필요가 있다 / 여유가 되다 / 해내다 / 실패하다'},
+    {verb:'promise / offer / tend',pattern:'to부정사',meaning:'~하기로 약속하다 / 제안하다 / ~하는 경향이 있다'},
+    {verb:'finish / give up / avoid / enjoy',pattern:'-ing',meaning:'~하는 것을 끝내다 / 포기하다 / 피하다 / 즐기다'},
+    {verb:'delay / suggest / recommend / consider',pattern:'-ing',meaning:'~를 미루다 / 제안하다 / 권고하다 / 고려하다'},
+    {verb:'mind / practice / risk / deny',pattern:'-ing',meaning:'~하는 것을 꺼리다 / 연습하다 / 위험을 무릅쓰다 / 부정하다'},
+    {verb:'keep / keep on / spend + 시간',pattern:'-ing',meaning:'계속 ~하다 / ~하는 데 시간을 쓰다'},
+    {verb:'advise / encourage / allow / ask + 목적어',pattern:'to부정사',meaning:'~에게 ...하도록 조언 / 격려 / 허용 / 요청하다'},
+    {verb:'invite / require / request + 목적어',pattern:'to부정사',meaning:'~에게 ...하도록 초대 / 요구 / 요청하다'},
+    {verb:'cause / enable / force + 목적어',pattern:'to부정사',meaning:'~가 ...하도록 야기 / 가능하게 / 강요하다'},
+    {verb:'be encouraged / be expected',pattern:'to부정사',meaning:'~하도록 장려되다 / ~할 것으로 예상되다'},
+    {verb:'be required / be allowed / be asked',pattern:'to부정사',meaning:'~하도록 요구 / 허용 / 요청받다'},
+    {verb:'look forward to',pattern:'전치사 to + -ing',meaning:'~를 기대하다 (to = 전치사)'},
+    {verb:'be committed / be dedicated to',pattern:'전치사 to + -ing',meaning:'~에 헌신하다 (to = 전치사)'},
+    {verb:'be accustomed / be used to',pattern:'전치사 to + -ing',meaning:'~에 익숙하다 (to = 전치사)'},
+    {verb:'contribute / lead / object to',pattern:'전치사 to + -ing',meaning:'~에 기여 / 이어지다 / 반대하다 (to = 전치사)'},
+    {verb:'be subject / be devoted to',pattern:'전치사 to + -ing',meaning:'~의 대상이 되다 / ~에 헌신하다'},
+    {verb:'by + 동사',pattern:'-ing',meaning:'by ~ing = ~함으로써 (수단)'},
+    {verb:'upon / on + 동사',pattern:'-ing',meaning:'upon ~ing = ~하자마자 (시점)'},
+    {verb:'remember / forget / stop / try',pattern:'둘 다 가능',meaning:'-ing는 과거 행동 / to do는 미래/목적 (뜻 달라짐)'},
+    {verb:'regret',pattern:'둘 다 가능',meaning:'-ing는 ~한 것을 후회 / to do는 유감스럽게도 ~하다'},
+  ],
+};
+
+const TYPE_META = {
+  접전부:      {label:'접·전·부',     icon:'🔗', color:'ic-접전부',      desc:'접속사 / 전치사 / 부사 구분'},
+  가산불가산:  {label:'가산 / 불가산', icon:'📦', color:'ic-가산불가산',  desc:'셀 수 있는 명사 vs 없는 명사'},
+  자동사전치사:{label:'자동사 + 전치사',icon:'⚡', color:'ic-자동사전치사',desc:'동사 뒤 필수 전치사'},
+  수동태:      {label:'수동태 관용',   icon:'🔄', color:'ic-수동태',      desc:'be p.p + 전치사 / 패턴'},
+  동명사:      {label:'to / 동명사',  icon:'🌿', color:'ic-동명사',      desc:'to부정사 vs -ing 구분'},
+};
+const TYPES = ['접전부','가산불가산','자동사전치사','수동태','동명사'];
+
+// ================================================================
+// STATE
+// ================================================================
+let state = {cards:{},gistId:'',token:'',updatedAt:0};
+let session = null;
+let currentType = null;
+
+function makeCards(typeKey) {
+  return DATA[typeKey].map(() => ({status:'unseen',streak:0}));
+}
+
+function initAllCards() {
+  const cards = {};
+  TYPES.forEach(t => { cards[t] = makeCards(t); });
+  return cards;
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('toeic_v2');
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.cards) return;
+    TYPES.forEach(t => {
+      if (!saved.cards[t]) {
+        saved.cards[t] = makeCards(t);
+      } else if (saved.cards[t].length < DATA[t].length) {
+        const extra = DATA[t].slice(saved.cards[t].length).map(() => ({status:'unseen',streak:0}));
+        saved.cards[t] = [...saved.cards[t], ...extra];
+      }
+    });
+    state = saved;
+  } catch(e) { console.error(e); }
+}
+
+function saveState() {
+  state.updatedAt = Date.now();
+  localStorage.setItem('toeic_v2', JSON.stringify(state));
+}
+
+// ================================================================
+// GIST SYNC
+// ================================================================
+async function fetchGist() {
+  if (!state.token || !state.gistId) return null;
+  console.log('[fetchGist] token:', JSON.stringify(state.token.slice(0,10)), 'len:', state.token.length, 'gistId:', state.gistId.slice(0,8));
+  try {
+    const r = await fetchWithTimeout(`https://api.github.com/gists/${state.gistId}`, {
+      headers: {Authorization:`Bearer ${state.token}`},
+      cache: 'no-store'
+    });
+    if (!r.ok) return null;
+    const data = await r.json();
+    const content = data.files?.['toeic_v2.json']?.content;
+    return content ? JSON.parse(content) : null;
+  } catch(e) { return null; }
+}
+
+async function pushGist() {
+  if (!state.token || !state.gistId) return;
+  try {
+    // 토큰은 로컬에만 보관 — Gist에는 저장하지 않음
+    const {token, ...syncState} = state;
+    await fetchWithTimeout(`https://api.github.com/gists/${state.gistId}`, {
+      method:'PATCH',
+      headers:{Authorization:`Bearer ${state.token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({files:{'toeic_v2.json':{content:JSON.stringify(syncState)}}})
+    });
+  } catch(e) {}
+}
+
+async function fetchWithTimeout(url, opts={}, ms=10000) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), ms);
+  try {
+    const r = await fetch(url, {...opts, signal: ctrl.signal});
+    clearTimeout(tid);
+    return r;
+  } catch(e) {
+    clearTimeout(tid);
+    throw e;
+  }
+}
+
+async function connectGist() {
+  const token = document.getElementById('token-input').value.trim();
+  const gistId = document.getElementById('gist-input').value.trim();
+  if (!token) { toast('토큰을 입력하세요'); return; }
+  state.token = token;
+  const statusEl = document.getElementById('gist-status');
+  statusEl.textContent = `연결 중... (토큰: ${token.slice(0,6)}... 길이:${token.length})`;
+
+  try {
+    // 토큰 유효성 먼저 확인
+    const userR = await fetchWithTimeout('https://api.github.com/user', {
+      headers: {Authorization:`Bearer ${token}`}, cache:'no-store'
+    });
+    if (!userR.ok) {
+      const e = await userR.json().catch(()=>({}));
+      statusEl.textContent = `토큰 오류 ${userR.status}: ${e.message||'만료되었거나 권한 없음'}`;
+      return;
+    }
+    const user = await userR.json();
+    statusEl.textContent = `✓ ${user.login} 확인됨, Gist 연결 중...`;
+
+    if (!gistId) {
+      const r = await fetchWithTimeout('https://api.github.com/gists', {
+        method:'POST',
+        headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+        body:(()=>{const {token:_t,...s}=state;return JSON.stringify({description:'TOEIC vocab progress',public:false,files:{'toeic_v2.json':{content:JSON.stringify(s)}}})})()
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(()=>({}));
+        statusEl.textContent = `실패 ${r.status}: ${err.message || '토큰을 확인하세요'}`;
+        return;
+      }
+      const data = await r.json();
+      state.gistId = data.id;
+      document.getElementById('gist-input').value = data.id;
+      saveState();
+      statusEl.textContent = `Gist 생성: ${data.id}`;
+      toast('Gist 생성 완료!');
+    } else {
+      state.gistId = gistId;
+      const remote = await fetchGist();
+      if (!remote) { statusEl.textContent = '연결 실패: ID를 확인하세요'; return; }
+      if (!remote.cards) remote.cards = {};
+      if ((remote.updatedAt||0) > (state.updatedAt||0)) {
+        TYPES.forEach(t => {
+          if (remote.cards[t]) {
+            if (remote.cards[t].length < DATA[t].length) {
+              const extra = DATA[t].slice(remote.cards[t].length).map(()=>({status:'unseen',streak:0}));
+              remote.cards[t] = [...remote.cards[t], ...extra];
+            }
+            state.cards[t] = remote.cards[t];
+          }
+        });
+        state.updatedAt = remote.updatedAt || 0;
+        saveState();
+        toast('원격 데이터 불러옴');
+      } else {
+        await pushGist();
+        toast('로컬 데이터 저장함');
+      }
+      statusEl.textContent = `연결됨: ${gistId}`;
+    }
+    renderHome();
+  } catch(e) {
+    statusEl.textContent = e.name === 'AbortError' ? '연결 시간 초과 — 다시 시도하세요' : `오류: ${e.message}`;
+  }
+}
+
+async function syncNow() {
+  if (!state.token || !state.gistId) { toast('먼저 Gist를 연결하세요'); return; }
+  await pushGist();
+  toast('저장 완료');
+}
+
+// ================================================================
+// UTILS
+// ================================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function getDistractors(correctIdx, pool, key, count=3) {
+  const correct = pool[correctIdx][key];
+  const others = pool
+    .map((d,i) => ({i, val:d[key]}))
+    .filter(x => x.i !== correctIdx && x.val !== correct);
+  return shuffle(others).slice(0, count).map(x => x.val);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+let _toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ================================================================
+// HOME
+// ================================================================
+function renderHome() {
+  showScreen('home');
+  document.getElementById('sync-label').textContent = state.gistId ? '동기화됨' : '동기화';
+
+  const list = document.getElementById('type-list');
+  list.innerHTML = '';
+
+  TYPES.forEach(t => {
+    const meta = TYPE_META[t];
+    const pool = DATA[t];
+    const cards = state.cards[t];
+    const total = pool.length;
+    const done = cards.filter(c => c.status==='done').length;
+
+    const displayCount = Math.min(24, total);
+    const dotHtml = Array.from({length:displayCount}, (_,i) => {
+      const s = cards[i]?.status || 'unseen';
+      return `<div class="type-dot ${s==='done'?'dot-done':s==='learning'?'dot-learning':'dot-unseen'}"></div>`;
+    }).join('');
+
+    const card = document.createElement('div');
+    card.className = 'type-card';
+    card.onclick = () => startType(t);
+    card.innerHTML = `
+      <div class="type-icon ${meta.color}">${meta.icon}</div>
+      <div class="type-info">
+        <div class="type-name">${meta.label}</div>
+        <div class="type-desc">${meta.desc}</div>
+        <div class="type-progress">
+          <div class="type-dots">${dotHtml}</div>
+          <div class="type-count">${done}/${total}</div>
+        </div>
+      </div>
+      <div class="type-arrow">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+function goHome() {
+  session = null;
+  currentType = null;
+  renderHome();
+}
+
+function toggleTokenView() {
+  const input = document.getElementById('token-input');
+  const btn = document.getElementById('token-eye');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '숨기기'; }
+  else { input.type = 'password'; btn.textContent = '보기'; }
+}
+
+function showSettings() {
+  showScreen('settings');
+  document.getElementById('token-input').value = state.token || '';
+  document.getElementById('gist-input').value = state.gistId || '';
+  document.getElementById('gist-status').textContent = state.gistId ? `연결됨: ${state.gistId}` : '';
+}
+
+function resetAll() {
+  if (!confirm('모든 유형의 진도를 초기화할까요?')) return;
+  state.cards = initAllCards();
+  saveState();
+  renderHome();
+  toast('초기화 완료');
+}
+
+// ================================================================
+// TYPE ENTRY
+// ================================================================
+function startType(typeKey) {
+  currentType = typeKey;
+  const pool = DATA[typeKey];
+  const cards = state.cards[typeKey];
+
+  const unseenIdx = pool.map((_,i)=>i).filter(i => cards[i].status==='unseen');
+  const learningIdx = pool.map((_,i)=>i).filter(i => cards[i].status==='learning');
+  const doneIdx = pool.map((_,i)=>i).filter(i => cards[i].status==='done');
+
+  // 방안 B: learning 먼저 퀴즈 → 클리어되면 새 카드 플래시
+  if (learningIdx.length > 0) {
+    startQuiz(typeKey, shuffle(learningIdx), { afterClear: unseenIdx.length > 0 });
+    return;
+  }
+
+  // learning 없으면 새 카드 미리보기 → 플래시
+  if (unseenIdx.length > 0) {
+    showPreview(typeKey, shuffle(unseenIdx).slice(0, 10));
+    return;
+  }
+
+  // 전부 done이면 복습 퀴즈
+  if (doneIdx.length > 0) {
+    startQuiz(typeKey, shuffle(doneIdx).slice(0, 20), { reviewMode: true });
+    return;
+  }
+
+  toast('아직 학습할 카드가 없어요');
+}
+
+// ================================================================
+// FLASH
+// ================================================================
+function startFlash(typeKey, queue) {
+  session = {typeKey, mode:'flash', queue:[...queue], pos:0, flipped:false};
+  showScreen('flash');
+  document.getElementById('flash-title').textContent = `${TYPE_META[typeKey].label} — 플래시`;
+  renderFlash();
+}
+
+let _flashTimer = null;
+let _quizTimer = null;
+const FLASH_DELAY_BADGE   = 3000;
+const FLASH_DELAY_MEANING = 3000;
+const FLASH_DELAY_ADVANCE = 3000;
+
+function renderFlash() {
+  const {queue, pos, typeKey} = session;
+  const total = queue.length;
+  const pct = total > 0 ? (pos / total * 100) : 0;
+  document.getElementById('flash-progress-count').textContent = `${pos}/${total}`;
+  document.getElementById('flash-progress-bar').style.width = pct + '%';
+
+  const content = document.getElementById('flash-content');
+  clearTimeout(_flashTimer);
+
+  if (pos >= total) {
+    const total2 = queue.length;
+    content.innerHTML = `
+      <div class="flash-complete">
+        <div class="complete-icon">✓</div>
+        <div class="complete-title">플래시 완료!</div>
+        <div class="complete-desc">${total2}개 카드를 봤어요.<br>퀴즈로 확인해볼까요?</div>
+        <div class="complete-actions">
+          <button class="btn btn-primary" onclick="startQuizFromFlash()">퀴즈 시작</button>
+          <button class="btn btn-secondary" onclick="goHome()">홈으로</button>
+        </div>
+      </div>`;
+    // Mark all shown cards as learning
+    queue.forEach(i => {
+      if (state.cards[typeKey][i].status === 'unseen') state.cards[typeKey][i].status = 'learning';
+    });
+    saveState();
+    pushGist().catch(()=>{});
+    return;
+  }
+
+  const idx = queue[pos];
+  const item = DATA[typeKey][idx];
+  const fc = getFlashContent(typeKey, item);
+  session._flashContent = fc;
+  session._flashStep = 0;
+
+  content.innerHTML = `
+    <div class="flash-word-card" id="flash-word-card" onclick="tapFlash()">
+      ${fc.wordHtml}
+    </div>
+    <div id="flash-badge-slot"></div>
+    <div id="flash-meaning-slot"></div>`;
+
+  clearTimeout(_flashTimer);
+  _flashTimer = setTimeout(showFlashBadge, FLASH_DELAY_BADGE);
+}
+
+function getFlashContent(typeKey, item) {
+  if (typeKey === '접전부') {
+    const badges = item.type.split('/').map(t => t.trim())
+      .map(t => `<div class="badge badge-${t}">${t}</div>`).join(' ');
+    const meaningHtml = item.meaning.replace(/\s*\|\s*/g, '<br>');
+    return {
+      wordHtml: `<div class="flash-word">${item.word}</div>`,
+      badgeHtml: `<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">${badges}</div>`,
+      meaningHtml: `<div class="flash-answer-meaning">${meaningHtml}</div>`
+    };
+  }
+  if (typeKey === '가산불가산') {
+    return {
+      wordHtml: `<div class="flash-word">${item.word}</div>`,
+      badgeHtml: `<div class="badge badge-${item.count}">${item.count}</div>`,
+      meaningHtml: `<div class="flash-answer-meaning">${item.meaning}</div>`
+    };
+  }
+  if (typeKey === '자동사전치사') {
+    return {
+      wordHtml: `<div class="flash-word">${item.verb} ___</div>`,
+      badgeHtml: `<div class="flash-answer-prep">${item.prep}</div>`,
+      meaningHtml: `<div class="flash-answer-meaning">${item.meaning}</div>`
+    };
+  }
+  if (typeKey === '수동태') {
+    return {
+      wordHtml: `<div class="flash-word">${item.expr} ___</div>`,
+      badgeHtml: `<div class="flash-answer-prep">${item.prep}</div>`,
+      meaningHtml: `<div class="flash-answer-meaning">${item.meaning}</div>`
+    };
+  }
+  // 동명사
+  const bclass = item.pattern.startsWith('to부정사') ? 'to부정사' : item.pattern.startsWith('-ing') ? '동명사' : '둘다';
+  return {
+    wordHtml: `<div class="flash-word">${item.verb}</div>`,
+    badgeHtml: `<div class="badge badge-${bclass}">${item.pattern}</div>`,
+    meaningHtml: `<div class="flash-answer-meaning">${item.meaning}</div>`
+  };
+}
+
+function tapFlash() {
+  clearTimeout(_flashTimer);
+  if (session._flashStep === 0) showFlashBadge();
+  else if (session._flashStep === 1) showFlashMeaning();
+  else advanceFlash();
+}
+
+function showFlashBadge() {
+  clearTimeout(_flashTimer);
+  session._flashStep = 1;
+  const slot = document.getElementById('flash-badge-slot');
+  if (slot) {
+    slot.innerHTML = `<div class="flash-answer-card" style="padding:16px 20px;cursor:pointer" onclick="tapFlash()">${session._flashContent.badgeHtml}</div>`;
+  }
+  _flashTimer = setTimeout(showFlashMeaning, FLASH_DELAY_MEANING);
+}
+
+function showFlashMeaning() {
+  clearTimeout(_flashTimer);
+  session._flashStep = 2;
+  const slot = document.getElementById('flash-meaning-slot');
+  if (slot) {
+    const {typeKey, queue, pos} = session;
+    const item = DATA[typeKey][queue[pos]];
+    const isDualMeaning = typeof item.meaning === 'string' && item.meaning.includes('|');
+    const delay = isDualMeaning ? 5000 : FLASH_DELAY_ADVANCE;
+    slot.innerHTML = `<div class="flash-answer-card" style="padding:16px 20px;cursor:pointer" onclick="tapFlash()">
+      ${session._flashContent.meaningHtml}
+      <div class="flash-auto-bar" style="width:100%;margin-top:8px"><div class="flash-auto-fill" id="flash-auto-fill" style="width:0%"></div></div>
+    </div>`;
+    requestAnimationFrame(() => {
+      const fill = document.getElementById('flash-auto-fill');
+      if (fill) {
+        fill.style.transition = `width ${delay}ms linear`;
+        fill.style.width = '100%';
+      }
+    });
+    _flashTimer = setTimeout(advanceFlash, delay);
+  }
+}
+
+function advanceFlash() {
+  clearTimeout(_flashTimer);
+  session.pos++;
+  session._flashStep = 0;
+  renderFlash();
+}
+
+function startQuizFromFlash() {
+  const {typeKey, queue} = session;
+  const quizQueue = queue.filter(i => state.cards[typeKey][i].status === 'learning');
+  startQuiz(typeKey, shuffle(quizQueue.length > 0 ? quizQueue : queue));
+}
+
+function startFlashNew(typeKey) {
+  const cards = state.cards[typeKey];
+  const unseenIdx = DATA[typeKey].map((_,i)=>i).filter(i => cards[i].status==='unseen');
+  showPreview(typeKey, shuffle(unseenIdx).slice(0, 10));
+}
+
+// ================================================================
+// PREVIEW
+// ================================================================
+const PREVIEW_COLS = {
+  접전부:      { headers: ['단어','품사','뜻'],       row: item => [item.word, item.type.replace(/\//g,' / '), item.meaning.replace(/\s*\|\s*/g,'<br>')] },
+  가산불가산:  { headers: ['단어','가산·불가산','뜻'], row: item => [item.word, item.count, item.meaning] },
+  자동사전치사:{ headers: ['동사','전치사','뜻'],      row: item => [item.verb, item.prep, item.meaning] },
+  수동태:      { headers: ['표현','패턴','뜻'],        row: item => [item.expr, item.prep, item.meaning] },
+  동명사:      { headers: ['동사','패턴','뜻'],        row: item => [item.verb, item.pattern, item.meaning] },
+};
+
+function showPreview(typeKey, queue) {
+  session = {typeKey, mode:'preview', queue:[...queue]};
+  showScreen('preview');
+  document.getElementById('preview-title').textContent = `${TYPE_META[typeKey].label} — 오늘의 학습`;
+  document.getElementById('preview-info').textContent = `오늘 새로 학습할 카드 ${queue.length}개`;
+
+  const col = PREVIEW_COLS[typeKey];
+  const pool = DATA[typeKey];
+  const rows = queue.map(i => {
+    const cells = col.row(pool[i]).map(c => `<td>${c}</td>`).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+  const headers = col.headers.map(h => `<th>${h}</th>`).join('');
+
+  document.getElementById('preview-table-wrap').innerHTML = `
+    <table class="preview-table">
+      <thead><tr>${headers}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function startFlashFromPreview() {
+  const {typeKey, queue} = session;
+  startFlash(typeKey, queue);
+}
+
+// ================================================================
+// QUIZ
+// ================================================================
+function startQuiz(typeKey, queue, opts={}) {
+  session = {typeKey, mode:'quiz', queue:[...queue], pos:0, step:0, stepAnswered:false, _stepWrong:false, wrongIds:[], opts};
+  showScreen('quiz');
+  document.getElementById('quiz-title').textContent = `${TYPE_META[typeKey].label} — ${opts.reviewMode ? '복습 퀴즈' : '퀴즈'}`;
+  renderQuiz();
+}
+
+function renderQuiz() {
+  const {queue, pos, typeKey} = session;
+  const total = queue.length;
+  const pct = total > 0 ? (pos / total * 100) : 0;
+  document.getElementById('quiz-progress-count').textContent = `${pos}/${total}`;
+  document.getElementById('quiz-progress-bar').style.width = pct + '%';
+
+  const content = document.getElementById('quiz-content');
+
+  if (pos >= total) {
+    const wrong = session.wrongIds.length;
+    const correct = total - wrong;
+    const {typeKey, opts} = session;
+    const allCleared = wrong === 0;
+
+    // learning 퀴즈 완료 후 새 카드 플래시로 이어갈 수 있는지
+    const canFlashNew = allCleared && opts.afterClear;
+    const unseenCount = DATA[typeKey].filter((_,i) => state.cards[typeKey][i].status === 'unseen').length;
+
+    let extraBtn = '';
+    if (wrong > 0) {
+      extraBtn = `<button class="btn btn-primary" onclick="retryWrong()">틀린 것만 다시 (${wrong}개)</button>`;
+    } else if (canFlashNew && unseenCount > 0) {
+      extraBtn = `<button class="btn btn-primary" onclick="startFlashNew('${typeKey}')">새 단어 학습 (${Math.min(unseenCount,10)}개)</button>`;
+    }
+
+    content.innerHTML = `
+      <div class="quiz-complete">
+        <div class="complete-icon">${allCleared?'🎉':'📝'}</div>
+        <div class="complete-title">${allCleared?'완벽해요!':'퀴즈 완료'}</div>
+        <div class="complete-desc">${correct}/${total} 정답${wrong>0?`<br>${wrong}개 다시 복습해요`:''}</div>
+        <div class="complete-actions" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:16px">
+          ${extraBtn}
+          <button class="btn btn-secondary" onclick="goHome()">홈으로</button>
+        </div>
+      </div>`;
+    saveState();
+    pushGist().catch(()=>{});
+    return;
+  }
+
+  const idx = queue[pos];
+  const item = DATA[typeKey][idx];
+  const qs = buildQuizQuestions(typeKey, item, idx);
+
+  // qs = [{label, choices, correct}, ...]
+  // Build one-screen layout
+  const sectionsHtml = qs.map((q, qi) => `
+    <div class="quiz-section" id="qsec${qi}">
+      <div class="quiz-section-label">Q${qi+1}. ${q.label}</div>
+      ${q.multiCorrect ? `<div class="multi-hint">정답을 모두 선택하세요 (${q.multiCorrect.length}개)</div>` : ''}
+      <div class="quiz-choices">
+        ${q.choices.map((c, ci) =>
+          `<button class="choice-btn" id="qc${qi}_${ci}" data-qi="${qi}" data-ci="${ci}" data-val="${encQ(c)}" onclick="selectChoice(this)">${c}</button>`
+        ).join('')}
+      </div>
+    </div>`).join('');
+
+  content.innerHTML = `
+    <div class="quiz-word-card">
+      <div class="quiz-word">${qs[0].display}</div>
+    </div>
+    ${sectionsHtml}
+    <div class="quiz-submit-area">
+      <div class="quiz-feedback-row" id="qfb-row"></div>
+      <button class="btn btn-primary" id="qsubmit-btn" onclick="submitQuiz()">제출</button>
+    </div>`;
+
+  // track selections
+  session._selections = new Array(qs.length).fill(null);
+  session._multiSel = {};
+  session._qs = qs;
+  session._submitted = false;
+}
+
+function encQ(s) {
+  return String(s).replace(/"/g,'&quot;');
+}
+
+function buildQuizQuestions(typeKey, item, idx) {
+  const pool = DATA[typeKey];
+
+  if (typeKey === '접전부') {
+    const baseTypes = ['접속사','전치사','부사'];
+    const isDual = item.type.includes('/');
+    const typeChoices = isDual
+      ? shuffle([...baseTypes, item.type]).slice(0, 4)
+      : shuffle(baseTypes);
+
+    if (isDual) {
+      // Q2: 품사별 뜻을 각각 선택지로 — 모두 선택해야 정답
+      const correctSubs = item.meaning.split(/\s*\|\s*/).map(s => s.trim()).filter(Boolean);
+      const allSubs = [];
+      pool.forEach((p, i) => {
+        if (i === idx) return;
+        p.meaning.split(/\s*\|\s*/).forEach(s => {
+          const t = s.trim();
+          if (t && !correctSubs.includes(t)) allSubs.push(t);
+        });
+      });
+      const wrongSubs = shuffle(allSubs).slice(0, Math.max(2, 4 - correctSubs.length));
+      const choices = shuffle([...correctSubs, ...wrongSubs]).slice(0, Math.max(4, correctSubs.length + 2));
+      return [
+        { display: item.word, label: '품사는?', choices: typeChoices, correct: item.type },
+        { display: item.word, label: '뜻은? (해당하는 것 모두 선택)', choices, multiCorrect: correctSubs }
+      ];
+    }
+
+    const wrongM = getDistractors(idx, pool, 'meaning');
+    return [
+      { display: item.word, label: '품사는?', choices: typeChoices, correct: item.type },
+      { display: item.word, label: '뜻은?', choices: shuffle([item.meaning, ...wrongM]), correct: item.meaning }
+    ];
+  }
+  if (typeKey === '가산불가산') {
+    const wrongM = getDistractors(idx, pool, 'meaning');
+    return [
+      { display: item.word, label: '가산 / 불가산?', choices: ['가산','불가산'], correct: item.count },
+      { display: item.word, label: '뜻은?', choices: shuffle([item.meaning, ...wrongM]), correct: item.meaning }
+    ];
+  }
+  if (typeKey === '자동사전치사') {
+    const allPreps = ['on','in','for','with','from','to','of','at','about','by','into','over','as','through','out'];
+    const mainPrep = item.prep.split(' ')[0];
+    const wrongPreps = shuffle(allPreps.filter(p => !item.prep.includes(p))).slice(0,3);
+    const wrongM = getDistractors(idx, pool, 'meaning');
+    return [
+      { display: `${item.verb} ___`, label: '전치사는?', choices: shuffle([item.prep, ...wrongPreps]), correct: item.prep },
+      { display: `${item.verb} ${item.prep}`, label: '뜻은?', choices: shuffle([item.meaning, ...wrongM]), correct: item.meaning }
+    ];
+  }
+  if (typeKey === '수동태') {
+    const allPreps = ['at','with','in','for','on','to','from','as','of','by','to do','about'];
+    const wrongPreps = shuffle(allPreps.filter(p => p!==item.prep)).slice(0,3);
+    const wrongM = getDistractors(idx, pool, 'meaning');
+    return [
+      { display: `${item.expr} ___`, label: '전치사 / 패턴은?', choices: shuffle([item.prep, ...wrongPreps]), correct: item.prep },
+      { display: `${item.expr} ${item.prep}`, label: '뜻은?', choices: shuffle([item.meaning, ...wrongM]), correct: item.meaning }
+    ];
+  }
+  // 동명사
+  const allPats = ['to부정사','-ing','둘 다 가능','전치사 to + -ing','to부정사 (수동)','-ing (수단)'];
+  const wrongPats = shuffle(allPats.filter(p => p!==item.pattern)).slice(0,3);
+  const wrongM = getDistractors(idx, pool, 'meaning');
+  return [
+    { display: item.verb, label: '형태는?', choices: shuffle([item.pattern, ...wrongPats]), correct: item.pattern },
+    { display: item.verb, label: '뜻은?', choices: shuffle([item.meaning, ...wrongM]), correct: item.meaning }
+  ];
+}
+
+function selectChoice(btn) {
+  if (session._submitted) return;
+  const qi = parseInt(btn.dataset.qi);
+  const q = session._qs[qi];
+  if (q.multiCorrect) {
+    btn.classList.toggle('selected');
+    if (!session._multiSel[qi]) session._multiSel[qi] = new Set();
+    if (btn.classList.contains('selected')) session._multiSel[qi].add(btn.dataset.val);
+    else session._multiSel[qi].delete(btn.dataset.val);
+    session._selections[qi] = session._multiSel[qi].size > 0 ? true : null;
+  } else {
+    document.querySelectorAll(`[data-qi="${qi}"]`).forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    session._selections[qi] = btn;
+  }
+}
+
+function submitQuiz() {
+  if (session._submitted) return;
+  const qs = session._qs;
+  const selections = session._selections;
+
+  // Check all answered
+  if (selections.some(s => s === null)) {
+    const unanswered = selections.map((s,i) => s===null?`Q${i+1}`:null).filter(Boolean).join(', ');
+    document.getElementById('qfb-row').innerHTML =
+      `<span style="color:var(--error)">아직 ${unanswered}번을 선택하지 않았어요</span>`;
+    return;
+  }
+
+  session._submitted = true;
+  let allCorrect = true;
+  const fbParts = [];
+
+  qs.forEach((q, qi) => {
+    if (q.multiCorrect) {
+      const sel = session._multiSel[qi] || new Set();
+      const correctSet = new Set(q.multiCorrect);
+      const isCorrect = q.multiCorrect.every(c => sel.has(c)) && [...sel].every(s => correctSet.has(s));
+      if (!isCorrect) allCorrect = false;
+      document.querySelectorAll(`[data-qi="${qi}"]`).forEach(b => {
+        b.disabled = true;
+        const isC = correctSet.has(b.dataset.val);
+        const wasSel = sel.has(b.dataset.val);
+        b.classList.remove('selected');
+        if (isC && wasSel) b.classList.add('correct');
+        else if (!isC && wasSel) b.classList.add('wrong');
+        else if (isC && !wasSel) b.classList.add('reveal');
+      });
+      fbParts.push(`<span class="${isCorrect?'qfb-ok':'qfb-no'}">Q${qi+1} ${isCorrect?'✓':'✗'}</span>`);
+    } else {
+      const selBtn = selections[qi];
+      const chosen = selBtn ? selBtn.dataset.val : null;
+      const correct = q.correct;
+      const isCorrect = chosen === correct;
+      if (!isCorrect) allCorrect = false;
+      document.querySelectorAll(`[data-qi="${qi}"]`).forEach(b => {
+        b.disabled = true;
+        if (b.dataset.val === correct) b.classList.add('reveal');
+      });
+      if (selBtn) {
+        selBtn.classList.remove('reveal', 'selected');
+        selBtn.classList.add(isCorrect ? 'correct' : 'wrong');
+      }
+      fbParts.push(`<span class="${isCorrect?'qfb-ok':'qfb-no'}">Q${qi+1} ${isCorrect?'✓':'✗'}</span>`);
+    }
+  });
+
+  document.getElementById('qfb-row').innerHTML = '';
+
+  const submitBtn = document.getElementById('qsubmit-btn');
+  submitBtn.textContent = '다음 →';
+  submitBtn.onclick = () => { clearTimeout(_quizTimer); finishQuizCard(allCorrect); };
+
+  _quizTimer = setTimeout(() => finishQuizCard(allCorrect), 1800);
+}
+
+function finishQuizCard(allCorrect) {
+  const {typeKey, queue, pos} = session;
+  const idx = queue[pos];
+  const card = state.cards[typeKey][idx];
+  if (allCorrect) {
+    card.streak = (card.streak || 0) + 1;
+    card.status = card.streak >= 2 ? 'done' : 'learning';
+  } else {
+    card.streak = 0;
+    card.status = 'learning';
+    if (!session.wrongIds.includes(idx)) session.wrongIds.push(idx);
+  }
+  session.pos++;
+  session._submitted = false;
+  session._selections = null;
+  session._multiSel = {};
+  session._qs = null;
+  renderQuiz();
+}
+
+function retryWrong() {
+  startQuiz(session.typeKey, shuffle([...session.wrongIds]));
+}
+
+// ================================================================
+// PROGRESS MODAL
+// ================================================================
+function showProgress() {
+  const keys = Object.keys(TYPE_META);
+  const rows = keys.map(k => {
+    const meta = TYPE_META[k];
+    const cards = state.cards[k] || [];
+    const total = cards.length;
+    const done = cards.filter(c => c.status === 'done').length;
+    const learning = cards.filter(c => c.status === 'learning').length;
+    const unseen = total - done - learning;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    return `
+      <div class="prog-type-row">
+        <div class="prog-type-header">
+          <div class="prog-type-icon ic-${k}">${meta.icon}</div>
+          <div class="prog-type-name">${meta.label}</div>
+          <div class="prog-type-fraction">${done}/${total}</div>
+        </div>
+        <div class="prog-bar-wrap"><div class="prog-bar-fill" style="width:${pct}%"></div></div>
+        <div class="prog-stat-row">
+          <span class="ps-done">완료 ${done}</span>
+          <span class="ps-learning">학습중 ${learning}</span>
+          <span class="ps-unseen">미시작 ${unseen}</span>
+        </div>
+      </div>`;
+  }).join('');
+  document.getElementById('progress-content').innerHTML = rows;
+  document.getElementById('progress-modal').classList.add('open');
+}
+
+function closeProgress(e) {
+  if (e.target === document.getElementById('progress-modal')) {
+    document.getElementById('progress-modal').classList.remove('open');
+  }
+}
+
+// ================================================================
+// BOOT
+// ================================================================
+(function boot() {
+  state.cards = initAllCards();
+  loadState();
+  renderHome();
+})();
+</script>
+</body>
+</html>
