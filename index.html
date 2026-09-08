@@ -246,7 +246,9 @@ a{color:var(--link);text-decoration:none}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
       </button>
       <div class="topbar-title" id="quiz-title">퀴즈</div>
-      <div style="width:36px"></div>
+      <button class="topbar-btn" onclick="reviewFlashFromQuiz()" title="플래시 다시 보기" aria-label="플래시 다시 보기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="13" height="13" rx="2"/><path d="M3 8v11a2 2 0 0 0 2 2h11"/></svg>
+      </button>
     </div>
     <div class="progress-wrap" style="margin-top:12px">
       <div class="progress-label">
@@ -885,6 +887,7 @@ function renderHome() {
 function goHome() {
   session = null;
   currentType = null;
+  _flashReturn = null;
   renderHome();
 }
 
@@ -955,6 +958,8 @@ function startFlash(typeKey, queue) {
 
 let _flashTimer = null;
 let _quizTimer = null;
+// 퀴즈 도중 플래시를 다시 볼 때, 끝나고 돌아갈 퀴즈 세션을 여기 보관한다.
+let _flashReturn = null;
 const FLASH_DELAY_BADGE   = 3000;
 const FLASH_DELAY_MEANING = 3000;
 const FLASH_DELAY_ADVANCE = 3000;
@@ -971,13 +976,18 @@ function renderFlash() {
 
   if (pos >= total) {
     const total2 = queue.length;
+    const quizDone = _flashReturn && _flashReturn.pos >= _flashReturn.queue.length;
+    const nextBtn = !_flashReturn
+      ? `<button class="btn btn-primary" onclick="startQuizFromFlash()">퀴즈 시작</button>`
+      : `<button class="btn btn-primary" onclick="resumeQuizFromFlash()">${quizDone ? '퀴즈 다시 풀기' : '퀴즈 이어서 풀기'}</button>`;
     content.innerHTML = `
       <div class="flash-complete">
         <div class="complete-icon">✓</div>
         <div class="complete-title">플래시 완료!</div>
-        <div class="complete-desc">${total2}개 카드를 봤어요.<br>퀴즈로 확인해볼까요?</div>
+        <div class="complete-desc">${total2}개 카드를 봤어요.<br>${_flashReturn ? '퀴즈로 돌아가 볼까요?' : '퀴즈로 확인해볼까요?'}</div>
         <div class="complete-actions">
-          <button class="btn btn-primary" onclick="startQuizFromFlash()">퀴즈 시작</button>
+          ${nextBtn}
+          <button class="btn btn-secondary" onclick="repeatFlash()">플래시 한 번 더</button>
           <button class="btn btn-secondary" onclick="goHome()">홈으로</button>
         </div>
       </div>`;
@@ -1102,6 +1112,36 @@ function startQuizFromFlash() {
   startQuiz(typeKey, shuffle(quizQueue.length > 0 ? quizQueue : queue));
 }
 
+// 같은 카드 묶음을 처음부터 다시 넘겨본다. 돌아갈 퀴즈가 있으면 그대로 유지한다.
+function repeatFlash() {
+  if (!session) return;
+  startFlash(session.typeKey, session.queue);
+}
+
+// 퀴즈 화면(진행 중이거나 결과 화면)에서 플래시로 빠져나간다.
+function reviewFlashFromQuiz() {
+  if (!session || session.mode !== 'quiz') return;
+  clearTimeout(_quizTimer);
+  _flashReturn = session;
+  startFlash(session.typeKey, session.queue);
+}
+
+function resumeQuizFromFlash() {
+  const saved = _flashReturn;
+  _flashReturn = null;
+  if (!saved) { goHome(); return; }
+  clearTimeout(_flashTimer);
+
+  // 이미 끝난 퀴즈였다면 결과 화면으로 돌아가는 대신 같은 묶음을 다시 출제한다.
+  if (saved.pos >= saved.queue.length) {
+    startQuiz(saved.typeKey, shuffle(saved.queue), saved.opts || {});
+    return;
+  }
+  session = saved;
+  showScreen('quiz');
+  renderQuiz();
+}
+
 function startFlashNew(typeKey) {
   const cards = state.cards[typeKey];
   const unseenIdx = DATA[typeKey].map((_,i)=>i).filter(i => cards[i].status==='unseen');
@@ -1144,6 +1184,7 @@ function getPreviewRow(typeKey, item) {
 }
 
 function showPreview(typeKey, queue) {
+  _flashReturn = null;
   session = {typeKey, mode:'preview', queue:[...queue]};
   showScreen('preview');
   document.getElementById('preview-title').textContent = `${TYPE_META[typeKey].label} — 오늘의 학습`;
@@ -1188,6 +1229,7 @@ function startFlashFromPreview() {
 // QUIZ
 // ================================================================
 function startQuiz(typeKey, queue, opts={}) {
+  _flashReturn = null;
   session = {typeKey, mode:'quiz', queue:[...queue], pos:0, step:0, stepAnswered:false, _stepWrong:false, wrongIds:[], opts};
   showScreen('quiz');
   document.getElementById('quiz-title').textContent = `${TYPE_META[typeKey].label} — ${opts.reviewMode ? '복습 퀴즈' : '퀴즈'}`;
@@ -1227,6 +1269,7 @@ function renderQuiz() {
         <div class="complete-desc">${correct}/${total} 정답${wrong>0?`<br>${wrong}개 다시 복습해요`:''}</div>
         <div class="complete-actions" style="display:flex;flex-direction:column;gap:10px;width:100%;margin-top:16px">
           ${extraBtn}
+          <button class="btn btn-secondary" onclick="reviewFlashFromQuiz()">플래시 다시 보기</button>
           <button class="btn btn-secondary" onclick="goHome()">홈으로</button>
         </div>
       </div>`;
